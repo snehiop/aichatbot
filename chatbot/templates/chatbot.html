@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Mentor</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        /* General Styles */
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #f9fafc;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .chat-container {
+            display: flex;
+            flex-direction: column;
+            background: #ffffff;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            border-radius: 12px;
+            width: 90%;
+            max-width: 1000px;
+            height: 90vh;
+            overflow: hidden;
+        }
+
+        .chat-header {
+            background-color: #4caf50;
+            color: white;
+            padding: 15px;
+            font-size: 20px;
+            font-weight: 700;
+            text-align: center;
+        }
+
+        .chat-body {
+            display: flex;
+            height: 100%;
+        }
+
+        .chat-history {
+            width: 30%;
+            background-color: #f1f8e9;
+            padding: 15px;
+            overflow-y: auto;
+            border-right: 1px solid #e0e0e0;
+        }
+
+        .chat-history h3 {
+            margin-top: 0;
+            color: #4caf50;
+            font-weight: 700;
+        }
+
+        .chat-history ul {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .chat-history li {
+            padding: 10px;
+            margin-bottom: 10px;
+            background-color: #e8f5e9;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .chat-history li:hover {
+            background-color: #c8e6c9;
+        }
+
+        .chat-area {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+        }
+
+        .chat-messages {
+                    flex-grow: 1;
+                    overflow-y: auto;
+                    margin-bottom: 10px; /* Slightly reduce bottom margin */
+                    padding: 10px; /* Reduce padding to tighten layout */
+                    background: #f4f4f9;
+                    border-radius: 8px;
+                    box-sizing: border-box; /* Keep consistent sizing */
+        }
+
+        .chat-messages .message {
+            margin-bottom: 8px; /* Reduce bottom spacing between messages */
+            padding: 5px 0; /* Minimal padding for cleaner layout */
+        }
+
+        .chat-messages .user {
+            color: #00796b;
+            font-weight: 700;
+        }
+
+        .chat-messages .bot {
+            color: #1e88e5;
+            font-weight: 700;
+        }
+
+        .chat-messages .message-text {
+            font-size: 16px;
+            line-height: 1.5; /* Tighten the spacing between lines */
+            margin: 0; /* Remove unnecessary margins */
+            color: #333;
+            word-wrap: break-word; /* Ensure long words wrap */
+        }
+
+        .chat-input {
+            display: flex;
+            align-items: center;
+        }
+
+        .chat-input textarea {
+            flex-grow: 1;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 10px;
+            font-size: 16px;
+            resize: none;
+        }
+
+        .chat-input button {
+            background-color: #4caf50;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 10px 20px;
+            margin-left: 10px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+
+        .chat-input button:hover {
+            background-color: #388e3c;
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <!-- MathJax for LaTeX -->
+    <script type="text/javascript">
+        window.MathJax = {
+            tex: {
+                inlineMath: [['\\(', '\\)']],
+                displayMath: [['\\[', '\\]']]
+            },
+            svg: { fontCache: 'global' }
+        };
+    </script>
+    <script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+
+    <!-- Marked for Markdown Parsing -->
+    
+</head>
+<body>
+    <div class="chat-container">
+        <div class="chat-header">AI Mentor</div>
+        <div class="chat-body">
+            <div class="chat-history">
+                <h3>Doubt History</h3>
+                <ul id="session-list"></ul>
+            </div>
+            <div class="chat-area">
+                <div class="chat-messages" id="chat-messages"></div>
+                <div class="chat-input">
+                    <textarea id="user-input" rows="2" placeholder="Type your message..."></textarea>
+                    <button id="send-button">Send</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const chatMessages = document.getElementById('chat-messages');
+        const userInput = document.getElementById('user-input');
+        const sendButton = document.getElementById('send-button');
+        const sessionList = document.getElementById('session-list');
+
+        // Fetch Chat History
+        const fetchChatHistory = async () => {
+            const response = await fetch('/chatbot/sessions/');
+            const data = await response.json();
+            sessionList.innerHTML = '';
+            data.sessions.forEach(session => {
+                const li = document.createElement('li');
+                li.textContent = `${session.date}`;
+                li.addEventListener('click', () => loadSessionByDate(session.date));
+                sessionList.appendChild(li);
+            });
+        };
+
+        // Load Session by Date
+        const loadSessionByDate = async (date) => {
+            const response = await fetch(`/chatbot/sessions/${date}/`);
+            const data = await response.json();
+            chatMessages.innerHTML = '';
+            data.messages.forEach(msg => appendMessage(msg.sender, msg.message));
+        };
+
+        // Send Message
+        sendButton.addEventListener('click', async () => {
+            const message = userInput.value.trim();
+            if (message) {
+                appendMessage('user', message);
+                userInput.value = '';
+                const response = await fetch('/chatbot/response/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message })
+                });
+                const data = await response.json();
+                appendMessage('bot', data.response);
+            }
+        });
+
+        // Append Message
+        const appendMessage = (sender, text) => {
+            const messageDiv = document.createElement('div');
+            messageDiv.classList.add('message');
+            const parsedHtml = marked.parse(text);
+            
+            messageDiv.innerHTML = `
+                <div class="${sender}">${sender === 'user' ? 'You' : 'Mentor'}:</div>
+                <div class="message-text">${parsedHtml}</div>
+            `;
+            chatMessages.appendChild(messageDiv);
+
+    // Wait for the DOM to update and render MathJax
+            if (window.MathJax) {
+                MathJax.typesetClear();
+                MathJax.typesetPromise([messageDiv]).then(() => {
+                    chatMessages.scrollTop = chatMessages.scrollHeight; // Auto-scroll to bottom
+                }).catch((err) => console.error("MathJax typesetting failed:", err));
+            } else {
+                console.error("MathJax is not loaded.");
+            }
+        };
+
+
+        fetchChatHistory();
+    </script>
+</body>
+</html>
