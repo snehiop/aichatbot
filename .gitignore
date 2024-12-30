@@ -10,8 +10,8 @@ venv/
 # Environment Variables
 *.env
 
-# Django Secret Files
-settings.py
+
+
 
 # Database
 db.sqlite3
