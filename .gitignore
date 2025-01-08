@@ -10,9 +10,6 @@ venv/
 # Environment Variables
 *.env
 
-
-
-
 # Database
 db.sqlite3
 
@@ -21,3 +18,5 @@ db.sqlite3
 
 # Miscellaneous
 *.sqlite3
+.vscode/
+.git/

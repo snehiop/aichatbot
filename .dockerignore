@@ -1,0 +1,12 @@
+.venv/
+venv/
+env
+*.sqlite3
+.DS_Store
+.git/
+.vscode/
+__pycache__
+dist
+logs
+src/node_modules
+Dockerfile
