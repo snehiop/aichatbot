@@ -13,6 +13,9 @@ venv/
 # Database
 db.sqlite3
 
+# static files 
+static/
+
 # Logs
 *.log
 

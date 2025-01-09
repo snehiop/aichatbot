@@ -106,8 +106,8 @@ User Query: {user_message}
 
             return JsonResponse({'response': sanitized_response}, status=200)
 
-        # except openai.error.OpenAIError as e:
-        #     return JsonResponse({'error': 'Failed to fetch response from OpenAI API'}, status=500)
+        except openai.error.OpenAIError as e:
+            return JsonResponse({'error': 'Failed to fetch response from OpenAI API'}, status=500)
         except Exception as e:
             return JsonResponse({'error': 'Internal server error'}, status=500)
 

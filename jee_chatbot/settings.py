@@ -15,7 +15,9 @@ SECRET_KEY = 'django-insecure-8t!$6$n!=i%4yppddwi_96h7i_wx9*(v7ioc$*b-7nd(ozggu_
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['vjnucleus.com', "13.202.87.212"]
+
+CSRF_TRUSTED_ORIGINS=['http://vjnucleus.com','https://vjnucleus.com']
 
 
 # Application definition
